@@ -9,71 +9,69 @@ export default function Learn() {
   ];
 
   return (
-    <main>
+    <main className="container-learn">
       {/* Header */}
-      <div>
-        <Link href="/">
+      <div className="learn-header">
+        <Link href="/" className="btn-secondary">
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
           >
             <path d="m12 19-7-7 7-7" />
             <path d="M19 12H5" />
           </svg>
-          <span>Back</span>
+          Back
         </Link>
-        <h1>Ask AI Teachers</h1>
+        <h1 className="learn-title">Ask AI Teachers</h1>
       </div>
 
       {/* Search Section */}
-      <div>
-        <h2>
+      <div className="search-section">
+        <h2 className="search-title">
           What would you like to
           <br />
-          <span>learn today?</span>
+          <span className="gradient-text">learn today?</span>
         </h2>
-        <p>
+        <p className="search-subtitle">
           Ask any question and our AI will create a personalized video lesson for you
         </p>
 
-        {/* Search Bar */}
-        <div>
+        {/* Search Container */}
+        <div className="search-container">
           <input
             type="text"
             placeholder="How does quantum physics work? Or What makes a great leader?"
+            className="search-input"
           />
-          <button>
-            Generate
+          <button className="btn-primary">
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
             >
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
             </svg>
+            Generate
           </button>
         </div>
 
-        {/* Example Questions */}
-        <div>
-          {examples.map((example) => (
-            <button key={example}>
-              {example}
-            </button>
-          ))}
+        {/* Examples Section */}
+        <div className="examples-section">
+          <p className="examples-label">Try these examples:</p>
+          <div className="examples-grid">
+            {examples.map((example) => (
+              <button key={example} className="example-tag">
+                {example}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </main>

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "simple-git-hooks"
   },
   "dependencies": {
     "next": "14.0.4",
@@ -19,6 +20,16 @@
     "@types/react-dom": "18.2.18",
     "eslint": "8.56.0",
     "eslint-config-next": "14.0.4",
+    "lint-staged": "^16.1.5",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "5.3.3"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ]
   }
 }
