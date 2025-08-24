@@ -26,7 +26,7 @@ export default function Learn() {
           </svg>
           Back
         </Link>
-        <h1 className="learn-title">Ask AI Teachers</h1>
+        <h1 className="learn-title">Ask Master Maagne</h1>
       </div>
 
       {/* Search Section */}

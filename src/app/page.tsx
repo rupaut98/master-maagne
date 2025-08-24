@@ -9,12 +9,12 @@ export default function Home() {
         <div className="logo-container">
           <Image
             src="/eduai-logo.svg"
-            alt="EduAI Logo"
+            alt="Master Maagne Logo"
             width={32}
             height={32}
             priority
           />
-          <span className="logo-text">EduAI</span>
+          <span className="logo-text">Master Maagne</span>
         </div>
       </div>
 
@@ -27,7 +27,7 @@ export default function Home() {
         </h1>
         <p className="hero-subtitle">
           Get personalized lessons from AI-powered versions of
-          history's greatest minds. Ask anything, learn everything.
+          Nepal's most famous personalities. Ask anything, learn everything.
         </p>
         <Link href="/learn" className="btn-primary">
           <svg
@@ -81,7 +81,7 @@ export default function Home() {
           </div>
           <h3 className="feature-title">Famous Teachers</h3>
           <p className="feature-description">
-            Learn from Einstein, Jobs, Shakespeare and other legendary figures
+            Learn from Maagne Budo, Raju Master, Dhurmusey and other legendary figures
           </p>
         </div>
 

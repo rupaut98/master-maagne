@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'EduAI - Learn from AI Legends',
-  description: 'Get personalized lessons from AI-powered versions of history\'s greatest minds.',
+  title: 'Master Maagne - Learn from AI Legends',
+  description: "Get personalized lessons from AI-powered versions of Nepal's most famous personalities.",
 };
 
 export default function RootLayout({
