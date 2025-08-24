@@ -1,22 +1,28 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { useVideoGeneration } from '@/hooks/useVideoGeneration';
+import { getRelevantExamples, MAX_QUERY_LENGTH, validateQueryLength } from '@/data/videos';
 
 export default function Learn() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
   const rippleRef = useRef<HTMLDivElement>(null);
   const particleContainerRef = useRef<HTMLDivElement>(null);
+  
+  const {
+    isGenerating,
+    isPolling,
+    progress,
+    estimatedTime,
+    error,
+    videoData,
+    videoMetadata,
+    generateVideo,
+    reset,
+    retry,
+  } = useVideoGeneration();
 
-  const examples = [
-    'Explain quantum entanglement',
-    'How to build a startup',
-    'Writing compelling characters',
-    'The theory of relativity',
-    'Leadership principles',
-    'Art of negotiation',
-  ];
+  const examples = getRelevantExamples();
 
   useEffect(() => {
     let animationFrame: number;
@@ -220,15 +226,23 @@ export default function Learn() {
     };
   }, []);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!searchQuery.trim()) return;
     
-    setIsGenerating(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsGenerating(false);
-      setShowVideo(true);
-    }, 3000);
+    // Validate query length before making API call
+    const validation = validateQueryLength(searchQuery);
+    if (!validation.isValid) {
+      // The API will handle this validation too, but we could show immediate feedback here
+      console.warn('Query validation failed:', validation.error);
+    }
+    
+    await generateVideo({
+      query: searchQuery,
+      teacher: 'maagne-budo',
+      language: 'english',
+      duration: 'medium',
+      style: 'educational',
+    });
   };
 
   const handleExampleClick = (example: string) => {
@@ -236,13 +250,19 @@ export default function Learn() {
   };
 
   const handleNewQuestion = () => {
-    setShowVideo(false);
+    reset();
     setSearchQuery('');
   };
 
+  // Determine what to show based on state
+  const showSearchScreen = !isGenerating && !videoMetadata && !error;
+  const showLoadingScreen = isGenerating || isPolling;
+  const showVideoScreen = videoMetadata && !isGenerating;
+  const showErrorScreen = error && !isGenerating;
+
   return (
     <main className="learn-container">
-      {!showVideo ? (
+      {showSearchScreen && (
         <>
           {/* Header */}
           <header className="learn-header">
@@ -285,9 +305,10 @@ export default function Learn() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="How does quantum physics work? Or What makes a great leader?"
+                    placeholder="Ask about something you want to learn ..."
                     className="search-input"
                     onKeyPress={(e) => e.key === 'Enter' && handleGenerate()}
+                    maxLength={MAX_QUERY_LENGTH}
                   />
                   <button 
                     onClick={handleGenerate}
@@ -311,6 +332,13 @@ export default function Learn() {
                     <span>{isGenerating ? 'Generating...' : 'Generate'}</span>
                   </button>
                 </div>
+                
+                {/* Character Counter */}
+                <div className="character-counter">
+                  <span className={searchQuery.length > MAX_QUERY_LENGTH * 0.9 ? 'warning' : ''}>
+                    {searchQuery.length}/{MAX_QUERY_LENGTH}
+                  </span>
+                </div>
               </div>
 
               {/* Examples Section */}
@@ -331,24 +359,66 @@ export default function Learn() {
             </div>
           </section>
 
-          {/* Loading State */}
-          {isGenerating && (
-            <section className="loading-section">
-              <div className="loading-card">
-                <div className="loading-animation">
-                  <div className="pulse-ring"></div>
-                  <div className="pulse-ring delay-1"></div>
-                  <div className="pulse-ring delay-2"></div>
-                </div>
-                <h3 className="loading-title">Creating your personalized lesson</h3>
-                <p className="loading-description">
-                  Master Maagne is preparing an amazing video just for you...
-                </p>
-              </div>
-            </section>
-          )}
         </>
-      ) : (
+      )}
+
+      {/* Loading State */}
+      {showLoadingScreen && (
+        <section className="loading-section">
+          <div className="loading-card">
+            <div className="loading-animation">
+              <div className="pulse-ring"></div>
+              <div className="pulse-ring delay-1"></div>
+              <div className="pulse-ring delay-2"></div>
+            </div>
+            <h3 className="loading-title">
+              {isGenerating ? 'Creating your personalized lesson' : 'Generating video content'}
+            </h3>
+            <p className="loading-description">
+              {isGenerating 
+                ? 'Master Maagne is preparing an amazing video just for you...'
+                : `${progress}% complete • ${estimatedTime}s remaining`
+              }
+            </p>
+            {isPolling && (
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Error State */}
+      {showErrorScreen && (
+        <section className="error-section">
+          <div className="error-card">
+            <div className="error-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <h3 className="error-title">Something went wrong</h3>
+            <p className="error-description">{error}</p>
+            <div className="error-actions">
+              <button onClick={retry} className="button-primary">
+                Try Again
+              </button>
+              <button onClick={handleNewQuestion} className="button-secondary">
+                New Question
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Video Player Section */}
+      {showVideoScreen && (
         /* Video Player Section */
         <section className="video-section">
           <header className="video-header">
@@ -371,23 +441,35 @@ export default function Learn() {
           <div className="video-player">
             <div className="video-container">
               <div className="video-placeholder">
-                <div className="play-overlay">
-                  <button className="play-button-large">
-                    <svg
-                      width="80"
-                      height="80"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <polygon points="5,3 19,12 5,21" />
-                    </svg>
-                  </button>
-                </div>
+                {videoMetadata.videoUrl ? (
+                  <iframe
+                    src={videoMetadata.videoUrl}
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    style={{ borderRadius: '12px' }}
+                  />
+                ) : (
+                  <div className="play-overlay">
+                    <button className="play-button-large">
+                      <svg
+                        width="80"
+                        height="80"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <polygon points="5,3 19,12 5,21" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
               
               <div className="video-info">
-                <h2 className="video-question">"{searchQuery}"</h2>
-                <p className="video-teacher">Taught by Master Maagne</p>
+                <h2 className="video-question">"{videoMetadata.title}"</h2>
+                <p className="video-teacher">Taught by {videoMetadata.teacher}</p>
                 
                 <div className="video-controls">
                   <button className="control-button">

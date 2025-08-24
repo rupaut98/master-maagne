@@ -392,20 +392,16 @@ export default function Home() {
         
         <div className="demo-container">
           <div className="demo-video">
-            <div className="video-placeholder">
-              <div className="play-button">
-                <svg
-                  width="60"
-                  height="60"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <polygon points="5,3 19,12 5,21" />
-                </svg>
-              </div>
-            </div>
+            <iframe
+              src="https://drive.google.com/file/d/1uBn7wFtAwrSW3O2w_jgZN0MByDGRGggz/preview"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              style={{ borderRadius: '12px' }}
+              title="Master Maagne Demo Video"
+            />
             <div className="demo-overlay">
               <h3 className="demo-title">Watch Demo</h3>
               <p className="demo-description">
