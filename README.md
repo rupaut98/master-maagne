@@ -1,4 +1,4 @@
-# Magne Budo
+# Master Maagne
 
 A Next.js 15 application with TypeScript, Tailwind CSS, and modern development tooling.
 
