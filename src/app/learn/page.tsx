@@ -7,6 +7,7 @@ export default function Learn() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const rippleRef = useRef<HTMLDivElement>(null);
+  const particleContainerRef = useRef<HTMLDivElement>(null);
 
   const examples = [
     'Explain quantum entanglement',
@@ -18,16 +19,205 @@ export default function Learn() {
   ];
 
   useEffect(() => {
+    let animationFrame: number;
+    const particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      life: number;
+      maxLife: number;
+      color: string;
+    }> = [];
+
+    const bubbles: Array<{
+      x: number;
+      y: number;
+      targetX: number;
+      targetY: number;
+      size: number;
+      life: number;
+      maxLife: number;
+      color: string;
+      delay: number;
+      opacity: number;
+    }> = [];
+
+    let mouseX = 0;
+    let mouseY = 0;
+
     const handleMouseMove = (e: MouseEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+
       if (rippleRef.current) {
         const ripple = rippleRef.current;
         ripple.style.left = `${e.clientX}px`;
         ripple.style.top = `${e.clientY}px`;
+        
+        // Add subtle cursor-following intensity
+        const intensity = Math.min(Math.sqrt(e.movementX ** 2 + e.movementY ** 2) / 10, 1);
+        ripple.style.opacity = `${0.3 + intensity * 0.4}`;
+      }
+
+      // Create floating bubbles that follow the cursor
+      if (Math.random() < 0.4) { // 40% chance to create bubble
+        const colors = [
+          'rgba(168, 85, 247, 0.3)', 
+          'rgba(244, 114, 182, 0.3)', 
+          'rgba(251, 146, 60, 0.3)',
+          'rgba(139, 92, 246, 0.25)',
+          'rgba(236, 72, 153, 0.25)'
+        ];
+        const size = 15 + Math.random() * 25; // Random size between 15-40px
+        
+        bubbles.push({
+          x: e.clientX + (Math.random() - 0.5) * 100,
+          y: e.clientY + (Math.random() - 0.5) * 100,
+          targetX: e.clientX,
+          targetY: e.clientY,
+          size: size,
+          life: 180,
+          maxLife: 180,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          delay: Math.random() * 30,
+          opacity: 0.7 + Math.random() * 0.3
+        });
+      }
+
+      // Create particle trail on mouse movement
+      if (Math.random() < 0.2) { // Reduced chance for particles since we have bubbles
+        const colors = ['rgba(168, 85, 247, 0.6)', 'rgba(244, 114, 182, 0.6)', 'rgba(251, 146, 60, 0.6)'];
+        particles.push({
+          x: e.clientX,
+          y: e.clientY,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2 - 1,
+          life: 60,
+          maxLife: 60,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
       }
     };
 
+    const handleClick = (e: MouseEvent) => {
+      // Create burst effect on click
+      const burst = document.createElement('div');
+      burst.className = 'click-burst';
+      burst.style.left = `${e.clientX}px`;
+      burst.style.top = `${e.clientY}px`;
+      document.body.appendChild(burst);
+
+      setTimeout(() => {
+        if (burst.parentNode) {
+          burst.parentNode.removeChild(burst);
+        }
+      }, 600);
+
+      // Create multiple particles on click
+      for (let i = 0; i < 12; i++) {
+        const angle = (Math.PI * 2 * i) / 12;
+        const speed = 3 + Math.random() * 2;
+        const colors = ['rgba(168, 85, 247, 0.8)', 'rgba(244, 114, 182, 0.8)', 'rgba(251, 146, 60, 0.8)'];
+        
+        particles.push({
+          x: e.clientX,
+          y: e.clientY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 120,
+          maxLife: 120,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+    };
+
+    const updateParticles = () => {
+      if (particleContainerRef.current) {
+        const container = particleContainerRef.current;
+        container.innerHTML = '';
+
+        // Update and render bubbles
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+          const bubble = bubbles[i];
+          
+          // Smooth following behavior with delay
+          if (bubble.delay > 0) {
+            bubble.delay--;
+          } else {
+            const dx = mouseX - bubble.x;
+            const dy = mouseY - bubble.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Smooth easing towards cursor
+            const ease = 0.02 + (1 / (bubble.size / 10)); // Smaller bubbles move faster
+            bubble.x += dx * ease;
+            bubble.y += dy * ease;
+            
+            // Add gentle floating motion
+            bubble.y += Math.sin(Date.now() * 0.001 + i) * 0.5;
+            bubble.x += Math.cos(Date.now() * 0.0008 + i) * 0.3;
+          }
+          
+          bubble.life--;
+
+          if (bubble.life <= 0) {
+            bubbles.splice(i, 1);
+            continue;
+          }
+
+          // Create bubble element
+          const bubbleEl = document.createElement('div');
+          bubbleEl.className = 'bubble';
+          bubbleEl.style.left = `${bubble.x}px`;
+          bubbleEl.style.top = `${bubble.y}px`;
+          bubbleEl.style.width = `${bubble.size}px`;
+          bubbleEl.style.height = `${bubble.size}px`;
+          bubbleEl.style.backgroundColor = bubble.color;
+          
+          // Fade out effect
+          const lifeRatio = bubble.life / bubble.maxLife;
+          bubbleEl.style.opacity = `${lifeRatio * bubble.opacity}`;
+          bubbleEl.style.transform = `scale(${0.5 + lifeRatio * 0.5})`;
+          
+          container.appendChild(bubbleEl);
+        }
+
+        // Update and render particles (existing code)
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const particle = particles[i];
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          particle.vy += 0.05; // gravity
+          particle.life--;
+
+          if (particle.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+
+          const particleEl = document.createElement('div');
+          particleEl.className = 'particle';
+          particleEl.style.left = `${particle.x}px`;
+          particleEl.style.top = `${particle.y}px`;
+          particleEl.style.backgroundColor = particle.color;
+          particleEl.style.opacity = `${particle.life / particle.maxLife}`;
+          container.appendChild(particleEl);
+        }
+      }
+
+      animationFrame = requestAnimationFrame(updateParticles);
+    };
+
+    updateParticles();
     document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
+    document.addEventListener('click', handleClick);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('click', handleClick);
+    };
   }, []);
 
   const handleGenerate = () => {
@@ -235,6 +425,9 @@ export default function Learn() {
 
       {/* Mouse Ripple Effect */}
       <div ref={rippleRef} className="mouse-ripple" />
+      
+      {/* Particle Container */}
+      <div ref={particleContainerRef} className="particle-container" />
     </main>
   );
 }
